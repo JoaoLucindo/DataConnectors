@@ -4,7 +4,7 @@
 // OAuth configuration settings
 //
 
-// TODO: set AAD client ID value in the idsecret.json file
+// TODO: set AAD client ID and client secret value in the idsecret.json file
 
 client_secret = Json.Document(Extension.Contents("idsecret.json"))[client_secret];
 client_id = Json.Document (Extension.Contents("idsecret.json"))[client_id];
