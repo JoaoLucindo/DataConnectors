@@ -1,0 +1,55 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "appturbina",
+    "version": "1.0",
+    "description": "Import from \"appturbina\" Function App"
+  },
+  "basePath": "/appturbina",
+  "schemes": [
+    "https"
+  ],
+  "securityDefinitions": {
+    "apiKeyHeader": {
+      "type": "apiKey",
+      "name": "Ocp-Apim-Subscription-Key",
+      "in": "header"
+    },
+    "apiKeyQuery": {
+      "type": "apiKey",
+      "name": "subscription-key",
+      "in": "query"
+    }
+  },
+  "security": [
+    {
+      "apiKeyHeader": []
+    },
+    {
+      "apiKeyQuery": []
+    }
+  ],
+  "paths": {
+    "/HttpTrigger1": {
+      "get": {
+        "operationId": "get-httptrigger1",
+        "summary": "HttpTrigger1",
+        "responses": {
+          "200": {
+            "description": null
+          }
+        }
+      },
+      "post": {
+        "operationId": "post-httptrigger1",
+        "summary": "HttpTrigger1",
+        "responses": {
+          "200": {
+            "description": null
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
