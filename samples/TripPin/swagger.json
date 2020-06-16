@@ -1,0 +1,40 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "MyAzureFunction"
+  },
+  "host": "azurefn.azurewebsites.net",
+  "paths": {
+    "/api/HttpTriggerCSharp1": {
+      "get": {
+        "description": "Calls my azure function over https",
+        "operationId": "RunThis",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "description": "code",
+            "default": "h6ztu…[your code here]…i",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "title": "The response of the api.",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
