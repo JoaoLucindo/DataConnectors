@@ -1,0 +1,55 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "turbinaapp",
+    "version": "1.0",
+    "description": "Import from \"turbinaapp\" Function App"
+  },
+  "basePath": "/turbinaapp",
+  "schemes": [
+    "https"
+  ],
+  "securityDefinitions": {
+    "apiKeyHeader": {
+      "type": "apiKey",
+      "name": "Ocp-Apim-Subscription-Key",
+      "in": "header"
+    },
+    "apiKeyQuery": {
+      "type": "apiKey",
+      "name": "subscription-key",
+      "in": "query"
+    }
+  },
+  "security": [
+    {
+      "apiKeyHeader": []
+    },
+    {
+      "apiKeyQuery": []
+    }
+  ],
+  "paths": {
+    "/TurbineRepair": {
+      "post": {
+        "operationId": "post-turbinerepair",
+        "summary": "TurbineRepair",
+        "responses": {
+          "200": {
+            "description": null
+          }
+        }
+      },
+      "get": {
+        "operationId": "get-turbinerepair",
+        "summary": "TurbineRepair",
+        "responses": {
+          "200": {
+            "description": null
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
