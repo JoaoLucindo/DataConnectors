@@ -1,109 +1,138 @@
-# Getting Started with Data Connectors
+# Graph API Custom Connector - Power Query SDK
 
-Data Connectors for Power BI enables users to connect to and access data from your application, service, or data source, providing them with rich business intelligence and robust analytics over multiple data sources. By integrating seamlessly into the Power Query connectivity experience in Power BI Desktop, Data Connectors make it easy for power users to query, shape and mashup data from your app to build reports and dashboards that meet the needs of their organization.
+#### Connecting Power BI to Microsoft Graph, a Step-by-Step Guide
 
-![PBIGetData](blobs/helloworld1.png "Hello World in Get Data")
+Connecting Power BI to Microsoft Graph is a highly requested feature from the  Power BI community. To achieve this, I've delevoped a Custom Connector for Power using the Power Query SDK.
 
-Data Connectors are created using the [M language](https://msdn.microsoft.com/library/mt211003.aspx). This is the same language used by the Power Query user experience found in Power BI Desktop and Excel 2016. Extensions allow you to define new functions for the M language, and can be used to enable connectivity to new data sources. While this document will focus on defining new connectors, much of the same process applies to defining general purpose M functions. Extensions can vary in complexity, from simple wrappers that essentially just provide "branding" over existing data source functions, to rich connectors that support Direct Query.
+To exemplify the use of this Custom Connector, in this walkthrough I will show you how to get data from Microsoft Planner, however feel free to tie to any Graph API endpoint.
 
-Please see the [Power Query Connector Developer Reference](https://docs.microsoft.com/en-us/power-query/handlingauthentication) for more details.
 
-## Quickstart
+------------
 
-1. Install the [Power Query SDK](https://aka.ms/powerquerysdk) from the Visual Studio Marketplace
-2. Create a new Data Connector project
-3. Define your connector logic
-4. Build the project to produce an extension file
-5. Copy the extension file into the `[Documents]\Power BI Desktop\Custom Connectors` directory
-6. Open Power BI Desktop
+## Step I: Register an application in Azure AD.
 
-Note, to load extensions during development, you will need to lower the security level for extensions in Power BI Desktop to enable loading unsigned/uncertified connectors.
+In this example, we need to get data from Planner calling the following Graph API endpoint:
 
-1. Go to File | Options and settings | Options
-2. Go the Security tab
-3. Under *Data Extensions*, select *Allow any extension to load without warning or validation*
-4. Restart Power BI Desktop
+`GET /planner/plans/{plan-id}/tasks`
 
-## Gateway Support
+One of the following permissions (Delegated) is required to call this API:
 
-The Power BI On-Premises Gateway now supports loading custom connectors.
-Please see the [technical documentation](https://docs.microsoft.com/en-us/power-query/handlinggatewaysupport) for more information, and the [TripPin Sample](samples/TripPin/9-TestConnection) for an example of how to add gateway support to your connector.
+`Group.Read.All, Group.ReadWrite.All`
 
-## Distribution of Data Connectors
+For more details about this API, please refer to the [documentation](https://docs.microsoft.com/en-us/graph/api/plannerplan-list-tasks?view=graph-rest-1.0&tabs=http "documentation")
 
-Power BI Desktop users can download extension files and place them in a known directory (steps described above). Power BI Desktop will automatically load the extensions on restart.
+With that in mind, lets register our application:
 
-Please see the [Connector Certification](https://docs.microsoft.com/en-us/power-query/connectorcertification) documentation
-for details on the certification process and requirements.
+1. Sign in to the [Azure portal](http://portal.azure.com "Azure portal") using either a work or school account or a personal Microsoft account. ()
 
-## Additional Links and Resources
+1. If your account gives you access to more than one tenant, select your account in the top right corner, and set your portal session to the Azure AD tenant that you want.
 
-* [Data Connector Technical Reference](docs/m-extensions.md)
-* [M Library Functions](https://msdn.microsoft.com/library/mt253322.aspx)
-* [M Language Specification](https://msdn.microsoft.com/library/mt807488.aspx)
-* [Power BI Developer Center](https://powerbi.microsoft.com/developers/)
-* [Data Connector Tutorial](https://github.com/Microsoft/DataConnectors/tree/master/samples/TripPin)
+1. In the left-hand navigation pane, select the Azure Active Directory service, and then select App registrations > New registration.
 
-The recording of the [Creating a Custom Data Connector session](https://www.youtube.com/watch?v=ecfRTEoYadI) from the [Microsoft Data Insights Summit 2017](https://powerbi.microsoft.com/en-us/blog/microsoft-data-insights-summit-2017-day-1-recap/) can be found by clicking the image below:
+1. When the Register an application page appears, enter your application's registration information:
 
-[![Deep Dive into the M Language](blobs/deepDiveVideo.png)](http://www.youtube.com/watch?v=ecfRTEoYadI)
+	**Name** - Enter a meaningful application name that will be displayed to users of the app.
+	**Redirect URL** - Select the Web type, and then enter: `https://oauth.powerbi.com/views/oauthredirect.html` and `https://preview.powerbi.com/views/oauthredirect.html`
+1. When finished, select **Register**. 
 
-## Hello World Sample
+1. In the left-hand navigation pane, select **Certificates & Secrets** and then select **New Client Secret**. Give a meaninful name and a duration. When done, select Add.
 
-The following code sample defines a simple "Hello World" data source. See the [full sample](samples/HelloWorld) for more information.
+	After saving the client secret, the value of the client secret is displayed. Copy this value because you won't be able to retrieve the key later. Store the key value where you can retrieve it. From now, I'll refer to this key as `%ClientSecret%`
 
-![GetData](blobs/pbigetdata.png "Get Data dialog in Power BI Desktop")
+1. In the left-hand navigation pane, select **Overview** and then copy the **Application (client) ID** value. Store the client ID value where you can retrieve it. From now, I'll refer to this key as `%ClientID%`
+1.In the left-hand navigation pane, select **API Permission -> +Add Permisson -> Microsoft Graph -> Delegated Permission** and then check `Group.Read.All` permission. When done, select **Add Permission**. After that you need to give the consent, so select **Grant Admin consent for 'your Company name'** 
 
-<pre style="font-family:Consolas;font-size:13;color:black;background:white;"><span style="color:blue;">section</span><span style="color:green;">&nbsp;</span>HelloWorld;<span style="color:green;">
- 
-</span>[DataSource.Kind=<span style="color:#a31515;">&quot;HelloWorld&quot;</span>,<span style="color:green;">&nbsp;</span>Publish=<span style="color:#a31515;">&quot;HelloWorld.Publish&quot;</span>]<span style="color:green;">
-</span>shared<span style="color:green;">&nbsp;</span><span style="color:#2b91af;">HelloWorld.Contents</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>(optional<span style="color:green;">&nbsp;</span><span style="color:#2b91af;">message</span><span style="color:green;">&nbsp;</span><span style="color:blue;">as</span><span style="color:green;">&nbsp;</span>text)<span style="color:green;">&nbsp;</span>=&gt;<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:blue;">let</span><span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">message</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span><span style="color:blue;">if</span><span style="color:green;">&nbsp;</span>(message<span style="color:green;">&nbsp;</span>&lt;&gt;<span style="color:green;">&nbsp;</span>null)<span style="color:green;">&nbsp;</span><span style="color:blue;">then</span><span style="color:green;">&nbsp;</span>message<span style="color:green;">&nbsp;</span><span style="color:blue;">else</span><span style="color:green;">&nbsp;</span><span style="color:#a31515;">&quot;Hello&nbsp;world&quot;</span><span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:blue;">in</span><span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>message;<span style="color:green;">
- 
-</span><span style="color:#2b91af;">HelloWorld</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>[<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">Authentication</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>[<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">Implicit</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>[]<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span>],<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">Label</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.LoadString</span>(<span style="color:#a31515;">&quot;DataSourceLabel&quot;</span>)<span style="color:green;">
-</span>];<span style="color:green;">
- 
-</span><span style="color:#2b91af;">HelloWorld.Publish</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>[<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">Beta</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>true,<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">ButtonText</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>{<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.LoadString</span>(<span style="color:#a31515;">&quot;FormulaTitle&quot;</span>),<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.LoadString</span>(<span style="color:#a31515;">&quot;FormulaHelp&quot;</span>)<span style="color:green;">&nbsp;</span>},<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">SourceImage</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>HelloWorld.Icons,<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">SourceTypeImage</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>HelloWorld.Icons<span style="color:green;">
-</span>];<span style="color:green;">
- 
-</span><span style="color:#2b91af;">HelloWorld.Icons</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>[<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">Icon16</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>{<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.Contents</span>(<span style="color:#a31515;">&quot;HelloWorld16.png&quot;</span>),<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.Contents</span>(<span style="color:#a31515;">&quot;HelloWorld20.png&quot;</span>),<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.Contents</span>(<span style="color:#a31515;">&quot;HelloWorld24.png&quot;</span>),<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.Contents</span>(<span style="color:#a31515;">&quot;HelloWorld32.png&quot;</span>)<span style="color:green;">&nbsp;</span>},<span style="color:green;">
-&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:#2b91af;">Icon32</span><span style="color:green;">&nbsp;</span>=<span style="color:green;">&nbsp;</span>{<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.Contents</span>(<span style="color:#a31515;">&quot;HelloWorld32.png&quot;</span>),<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.Contents</span>(<span style="color:#a31515;">&quot;HelloWorld40.png&quot;</span>),<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.Contents</span>(<span style="color:#a31515;">&quot;HelloWorld48.png&quot;</span>),<span style="color:green;">&nbsp;</span><span style="font-weight:bold;color:#008800;">Extension.Contents</span>(<span style="color:#a31515;">&quot;HelloWorld64.png&quot;</span>)<span style="color:green;">&nbsp;</span>}<span style="color:green;">
-</span>];<span style="color:green;">
-</span></pre>
+[![GIF 1](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF1.gif?raw=true "GIF 1")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF1.gif?raw=true "GIF 1")
 
-## What You Can Do With a Data Connector
+------------
 
-Data Connectors allow you to create new data sources, or customize and extend an existing source. Common use cases include:
 
-* Creating a business analyst friendly view for a REST API
-* Providing branding for a source that Power Query supports with an existing connector (such as an OData service, or ODBC driver)
-* Implementing an OAuth v2 authentication flow for a SaaS offering
-* Exposing a limited/filtered view over your data source to improve usability
-* Supporting different authentication modes when creating a [Power BI Content Pack](https://powerbi.microsoft.com/documentation/powerbi-developer-content-pack-overview/)
-* Enabling Direct Query for a data source via an ODBC driver
+## Step II: Install the Custom Connector
 
-### Upcoming Changes
+1. Download this Github Repo: https://github.com/JoaoLucindo/DataConnectors and unzip the file.
+1. Go to the folder `C:\..\DataConnectors-master\samples\Planner Connector - Gateway Refresh Support\Planner` and paste your %ClientSecret% and %ClientID% in the file `idsecret.json`.
 
-Custom Connectors for Power BI has reached general availability, but further improvements are planned within the next twelve months, including:
+`  {
+    "client_id": "%ClientID%",
+    "client_secret": "%ClientSecret%
+	} `
 
-- [ ] File extension changes (.mez to .pqx)
-- [ ] Improved tracing and diagnostics for developing Direct Query capable connectors
-- [ ] Versioning of extensions, and support for dependencies
-- [ ] Improved support for Library extensions (for reusable utility functions)
-- [ ] Integration and support for API Connectors for Microsoft Flow and PowerApps
-- [ ] Integration with the Office Store
-- [ ] Development experience improvements
+When done, save the json file.
+1. In the same folder, select all files (except for the file Planner.mez) and add to zip. When done, replace the file extension "**.zip**" for "**.mez**". If you are not able to see the file extension, please check out [this article](https://www.thewindowsclub.com/show-file-extensions-in-windows/ "this article")
+1.Check to see if your computer already has a **[Documents]\Power BI Desktop\Custom Connectors** folder. If not, create this folder. After that, copy the recent created **.mez** file to the folder **[Documents]\Power BI Desktop\Custom Connectors**.
+1.  You will also need to paste this same **.mez** file on the server on which the Enterprise Gateway is installed into the folder `C:\windows\ServiceProfiles\PBIEgwService\Documents\Power BI Desktop\Custom Connectors`. If your server doesn't have this folder, create the folder. [1]
+1. You will also need to adjust your security settings as described in the [custom connector setup documentation.](https://docs.microsoft.com/en-us/power-bi/connect-data/desktop-connector-extensibility#data-extension-security "custom connector setup documentation.")
 
-Please report issues and feature requests through our [Github issues page](https://github.com/Microsoft/DataConnectors/issues).
+[![GIF2](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF2.gif?raw=true "GIF2")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF2.gif?raw=true "GIF2")
+
+
+------------
+
+## Step III: Install the Power BI Gateway
+
+1. Follow the steps as decribed in [this doc.](https://docs.microsoft.com/en-us/data-integration/gateway/service-gateway-install "this doc.")
+1. Double check [1]:"Step II - 3"
+
+[![GIF 3](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF3.gif?raw=true "GIF 3")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF3.gif?raw=true "GIF 3")
+
+------------
+
+## Step IV: Create the Power BI Report
+
+1. Open your Power BI Desktop.
+1. You will need to adjust your security settings as described in the [custom connector setup documentation](https://docs.microsoft.com/en-us/power-bi/connect-data/desktop-connector-extensibility#data-extension-security "custom connector setup documentation").
+1. Restart your Power BI Desktop
+1.In the Home tab of Power BI Desktop, click on **Get Data**.
+1.The Get Data window should appear at this point. Navigate to Online Services, then select **PlannerTasks.Content (Beta)** and hit Connect.
+1.In the url field paste: `https://graph.microsoft.com/v1.0/planner/plans/{plan-id}/tasks`. Replace the place holder **{plan-id}** by your plan-id that can be found in the planner url. To find the PlanId, open the corresponding Plan in a browser and the last part of the URL contains the PlanId.
+In this example, the final url will be like: `https://graph.microsoft.com/v1.0/planner/plans/AOvnbngXFUWDBanG51XCBGUAFOf7/tasks`
+[![IMG1](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/IMG1.png?raw=true "IMG1")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/IMG1.png?raw=true "IMG1")
+
+1. When done, hit **OK**, signin with your organization account and finaly hit **Connect**
+[![GIF421](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF421.gif?raw=true "GIF421")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF421.gif?raw=true "GIF421")
+
+1. Now you can transform and modify your data the way you want, and finally create your report.
+1. When finish, hit **Publish** to publish your report to the Power BI Service. For more details, please refer to [this doc.](https://docs.microsoft.com/en-us/power-bi/create-reports/desktop-upload-desktop-files "this doc.")
+
+[![GIF422](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF422.gif?raw=true "GIF422")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF422.gif?raw=true "GIF422")
+------------
+
+## Step V: Configure Schedule Refresh
+
+1. Go to [https://admin.powerplatform.microsoft.com/ext/DataGateways](https://admin.powerplatform.microsoft.com/ext/DataGateways "https://admin.powerplatform.microsoft.com/ext/DataGateways")
+1. Select your Data Gateway, and then click on **More options (...)**
+1. Select **Settings**
+1. In the bottom right hand corner, check both the box labeled **Allow user's cloud datasources to refresh through this gateway cluster** and **Allow user's custom data connectors to refresh through this gateway cluster.**
+[![GIF5](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF5.gif?raw=true "GIF5")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF5.gif?raw=true "GIF5")
+1. Go to [https://app.powerbi.com/groups/me/gateways](https://app.powerbi.com/groups/me/gateways "https://app.powerbi.com/groups/me/gateways")
+1. Select your Gateway and then hit **Add data sources to use the gateway**
+1. Give a name for your new DataSource, Select **GraphAPIConnector** for Data Source Type, and then paste the same url that we've created in the **Step IV - 6**.
+1. Select **Edit Credentials**, Signin and then click **Add**
+[![GIF6](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF6.gif?raw=true "GIF6")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF6.gif?raw=true "GIF6")
+1. Go to the report that we just published to Power BI Service
+1. In you bottom left-hand corner, In the navigation pane, under Datasets, select More options (...)
+1. Make sure you're configuring the dataset with the same name as the report you just published.
+1. Select **Schedule Refresh**.
+1. Open the **Gateway connection** blade and change the **Use a data gateway** toggle switch to **On**
+1. Finaly, maps the data source to the data source that you just added to the gateway and hit **Apply**
+1. Now you can turn on the **Schedule Refresh** and configure the refresh frequency as you want and keep your report updated.
+[![GIF7](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF7.gif?raw=true "GIF7")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF7.gif?raw=true "GIF7")
+------------
+
+# References
+
+[1] [Use custom data connectors with the on-premises data gateway](https://docs.microsoft.com/en-us/power-bi/connect-data/service-gateway-custom-connectors#considerations-and-limitations "Use custom data connectors with the on-premises data gateway")
+
+[2] [Considerations and limitations](https://docs.microsoft.com/en-us/power-bi/connect-data/service-gateway-custom-connectors#considerations-and-limitations "Considerations and limitations")
+
+[3] [Create custom Power Query connectors](https://docs.microsoft.com/en-us/power-query/startingtodevelopcustomconnectors "Create custom Power Query connectors")
+
+[4] [Getting Started with Data Connectors](https://github.com/Microsoft/DataConnectors "Getting Started with Data Connectors")
+
+
+
+------------
+
+# Troubleshotting
+
+[Troubleshoot gateways - Power BI](https://docs.microsoft.com/en-us/power-bi/connect-data/service-gateway-onprem-tshoot "Troubleshoot gateways - Power BI")
