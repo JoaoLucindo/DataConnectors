@@ -39,9 +39,7 @@ With that in mind, lets register our application:
 
 	After saving the client secret, the value of the client secret is displayed. Copy this value because you won't be able to retrieve the key later. Store the key value where you can retrieve it. From now, I'll refer to this key as `%ClientSecret%`
 
-1. In the left-hand navigation pane, select **Overview** and then copy the **Application (client) ID** value. Store the client ID value where you can retrieve it. From now, I'll refer to this key as `%ClientID%`
-
-1.In the left-hand navigation pane, select **API Permission -> +Add Permisson -> Microsoft Graph -> Delegated Permission** and then check `Group.Read.All` permission. When done, select **Add Permission**. After that you need to give the consent, so select **Grant Admin consent for 'your Company name'** 
+1. In the left-hand navigation pane, select **Overview** and then copy the **Application (client) ID** value. Store the client ID value where you can retrieve it. From now, I'll refer to this key as `%ClientID%`.In the left-hand navigation pane, select **API Permission -> +Add Permisson -> Microsoft Graph -> Delegated Permission** and then check `Group.Read.All` permission. When done, select **Add Permission**. After that you need to give the consent, so select **Grant Admin consent for 'your Company name'** 
 
 [![GIF 1](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF1.gif?raw=true "GIF 1")](https://github.com/JoaoLucindo/DataConnectors/blob/master/GIFs/GIF1.gif?raw=true "GIF 1")
 
