@@ -2,6 +2,8 @@
 
 #### Connecting Power BI to Microsoft Graph, a Step-by-Step Guide
 
+***Please, be aware of [Lack of Support for Microsoft Graph in Power Query](https://docs.microsoft.com/en-us/power-query/connecting-to-graph "Lack of Support for Microsoft Graph in Power Query")***
+
 Connecting Power BI to Microsoft Graph is a highly requested feature from the  Power BI community. To achieve this, I've developed a Custom Connector for Power BI using the Power Query SDK.
 
 To exemplify the use of this Custom Connector, in this walkthrough I will show you how to get data from Microsoft Planner, however feel free to tie to any Graph API endpoint.
